@@ -1,59 +1,119 @@
-const controller = {};
+const fs = require('fs');
 const path = require('path');
-const usersFile = path.resolve(__dirname, '../../data/users.json');
-const fs = require('fs/promises');
 const {v4} = require('uuid');
+const usersFile = path.resolve(__dirname, '../../data/users.json');
+const controller = {};
 
-controller.getUsers = async (req, res) =>{
 
-    console.log('Cogiendo usuarios');
+// Obtener todos los usuarios
+controller.allUsers = (req, res) =>{
 
-    try{
+    fs.readFile(usersFile, (err, data) =>{
+        if(err) return res.send({error: 'Error al leer el archivo de usuarios'});
 
-        const data = await fs.readFile(usersFile);
-        const jsonData = await JSON.parse(data);
-        res.send(jsonData);
-
-    }catch(err){
-
-        res.send('Error al leer el archivo')
-
-    };
+        res.send(JSON.parse(data));
+    });
 };
 
-controller.createUser = async(req, res) =>{
-    
-    const randomNumber = Math.floor(Math.random()*99 + 1);
-    console.log(req.body);
+// Obtener un usuario por id
 
-    try{
+controller.userById = (req, res) =>{
+    fs.readFile(usersFile, 'utf8', (err, data) =>{
+        if(err) return res.send({error: 'Error al leer el archivo de usuarios'});
+
+        const users = JSON.parse(data);
+        const user = users.find(user => user.userId === req.params.id);
+
+        if(!user) return res.status(404).send({error: 'Usuario no encontrado'});
+        res.send(user);
+    });
+};
+
+// Crear un nuevo usuario
+
+controller.createUser = (req, res) =>{
+    
+    fs.readFile(usersFile, (err, data) =>{
+        if(err) return res.send({error: 'Error al leer el archivo de usuarios'});
+
+        const users = JSON.parse(data);
+
+        const userExist = users.some(user => user.email === req.body.email);
+
+        if(userExist) return res.status(409).send({error: 'Ya existe un usuario con ese email'});
 
         const newUser = {
-            'userId' : v4(),
-            'title' : req.body.title,
-            'name' : req.body.name,
-            'username' : req.body.username,
-            'age' : req.body.age,
-            'email' : req.body.email,
-            'profileImage' : `https://randomuser.me/api/portraits/${randomNumber < 50 ? 'men' : 'women'}/${randomNumber}.jpg`, 
-            'active' : true
+            userId: v4(),
+            title: req.body.title,
+            name: req.body.name,
+            username: req.body.username,
+            age: req.body.age,
+            email: req.body.email,
+            active: req.body.active
         };
 
-        const data = await fs.readFile(usersFile);
-        const jsonData = await JSON.parse(data);
+        users.push(newUser);
 
-        const newData = [...jsonData, newUser];
+        fs.writeFile(usersFile, JSON.stringify(users), err => {
+            if(err) return res.send({error: 'Error al guardar el archivo de usuarios'});
 
-        fs.writeFile(usersFile, JSON.stringify(newData));
-
-        res.send(newData);
-        
-    }catch(err){
-
-        res.send('Error al crear el nuevo usuario');
-
-    }
+            res.send(users);
+            res.end();
+        });
+    });
 };
+
+controller.updateUser = (req, res) => {
+    fs.readFile(usersFile, (err, data) => {
+      if (err) return res.send({ error: 'Error al leer el archivo de usuarios' });
+  
+      const users = JSON.parse(data);
+  
+      const user = users.find(user => user.userId === req.params.id);
+  
+      if (!user) res.status(404).send({ error: 'Usuario no encontrado' });
+  
+      user.name = req.body.name;
+      user.email = req.body.email;
+  
+      fs.writeFile(usersFile, JSON.stringify(users), err => {
+        if (err) {
+          return res.status(500).send({ error: 'Error al guardar el archivo de usuarios' });
+        }
+        res.send(users);
+      });
+    });
+  };
+
+// Borrar usuarios
+
+controller.deleteUser = (req, res) => {
+    fs.readFile(usersFile, (err, data) => {
+      if (err) {
+        console.log(err);
+  
+        return res.send({ error: 'Error al leer el archivo de usuarios' });
+      }
+  
+      let users = JSON.parse(data);
+  
+      const userIndex = users.findIndex(user => user.userId === req.params.id);
+  
+      if (userIndex === -1) return res.status(404).send('Usuario no encontrado');
+  
+      users.splice(userIndex, 1);
+  
+      fs.writeFile(usersFile, JSON.stringify(users), err => {
+        if (err) {
+          console.log(err);
+  
+          return res.status(500).send({ error: 'Error al guardar el archivo de usuarios' });
+        }
+  
+        res.status(200).send(users);
+      });
+    });
+  };
 
 
 module.exports = controller;

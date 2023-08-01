@@ -11,8 +11,9 @@ const GlobalStyles = createGlobalStyle`
     max-width: 100%;
   }
   body{
-    margin: 0;
+    margin: auto;
     font-family: sans-serif;
+    background-color: lightcyan;
   }
   a{
     text-decoration: none;
