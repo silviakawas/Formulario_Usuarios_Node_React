@@ -1,6 +1,6 @@
-import { StyledUsers, StyledUsersCont } from "./styles";
+import { StyledUsers, StyledUsersCont} from "./styles";
 
-const Users = ({ users, setUsers}) => {
+const Users = ({ users, setUsers, setIsEditing, setUserToEdit }) => {
 
 	if(users.length === 0) return <h1>No hay usuarios</h1>
 
@@ -11,19 +11,21 @@ const Users = ({ users, setUsers}) => {
 
 				{users.map(user => (
 					<div key={user.userId}>
-						<p>
-							{user.title}
-						</p>
 						<h2>
+							{user.title+[' ']}
 							{user.name}
 						</h2>
 						<p>
-							{user.username}
-							{user.age}
-							{user.email}
-							{user.active}
+							Nombre de usuario: {user.username}<br/>
+							Edad: {user.age}<br/>
+							Correo electrónico: {user.email}<br/>
+							Usuario activo: {user.active}
 						</p>
 						<button onClick={()=>deleteUser(user.userId, setUsers)}>Borrar</button>
+						<button onClick={()=> {
+							setIsEditing(true);
+							setUserToEdit(user);
+						}}>Editar</button>
 					</div>
 					
 				))}

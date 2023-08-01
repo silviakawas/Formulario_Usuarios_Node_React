@@ -73,8 +73,12 @@ controller.updateUser = (req, res) => {
   
       if (!user) res.status(404).send({ error: 'Usuario no encontrado' });
   
+      user.title = req.body.title;
       user.name = req.body.name;
+      user.username = req.body.username;
+      user.age = req.body.age;
       user.email = req.body.email;
+      user.active = req.body.active;
   
       fs.writeFile(usersFile, JSON.stringify(users), err => {
         if (err) {

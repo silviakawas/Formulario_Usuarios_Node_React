@@ -2,9 +2,20 @@ import { useEffect, useState } from 'react';
 import Form from './components/form/Form';
 import { GlobalStyles } from './styles/GlobalStyles';
 import Users from './components/users/Users';
+import EditUser from './components/editUser/EditUser';
 
 
 const App = () => {
+
+	const [isEditing, setIsEditing] = useState(false);
+	const [userToEdit, setUserToEdit] = useState({
+		id: '',
+		name: '',
+		username: '',
+		age: '',
+		email: '',
+		active: ''
+	})
 
 	const [users, setUsers] = useState([]);
 
@@ -16,8 +27,17 @@ const App = () => {
 		
 		<>	
 			<GlobalStyles />
-			<Form setUsers={setUsers}/>
-			<Users users={users} setUsers={setUsers}/>
+			{isEditing ? (
+				<EditUser 
+					setUsers={setUsers} 
+					userToEdit={userToEdit} 
+					setUserToEdit={setUserToEdit}
+					setIsEditing={setIsEditing}
+				/>) : (
+				<Form setUsers={setUsers}/>
+				)}
+			
+			<Users users={users} setUsers={setUsers} setIsEditing={setIsEditing} setUserToEdit={setUserToEdit}/>
 			
 		</>
 	);
